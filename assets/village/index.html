@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Christmas Village</title>
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1030; }
+  /* The screen. It clips the scene, so the scene never widens the page. */
+  #view { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
+  /* The scene is drawn at the picture's own size and scaled to cover the screen. */
+  #stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
+  #stage canvas, #stage img { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
+  #base { width: 1672px; height: 941px; }
+  /* The effects are drawn at one dot per 7 picture pixels, the size of the art's own pixels. */
+  #clouds, #fx { width: 1673px; height: 945px; }
+  #clouds { opacity: 0; }
+  #sleigh { display: none; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<div id="view">
+  <div id="stage">
+    <canvas id="base" width="1672" height="941"></canvas>
+    <canvas id="clouds" width="239" height="135"></canvas>
+    <img id="sleigh" src="sleigh.png" alt="">
+    <canvas id="fx" width="239" height="135"></canvas>
+  </div>
+</div>
+<script src="spots.js"></script>
+<script src="village.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "christmas-village-screensaver",
+  "name": "Christmas Village",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minAndroidSdk": 24,
+  "minAppVersion": "2026.10.45",
+  "entryClass": "kiosk.xmas.VillagePlugin",
+  "description": "An animated pixel art screensaver of a snowy Christmas village that follows the time of day: daylight and drifting clouds by day, a glowing sunset, then moonlight, twinkling stars and Santa's sleigh at night. Snow falls, the tree lights twinkle, the chimneys smoke and the river shimmers. Select Christmas Village under Screensaver > Screensaver mode.",
+  "author": "MozKaboom",
+  "license": "Apache-2.0",
+  "capabilities": [
+    "screensaver"
+  ],
+  "icon": "icon.png",
+  "settings": [
+    {
+      "key": "timeOfDay",
+      "type": "select",
+      "title": "Time of day",
+      "default": "Follow the clock",
+      "options": [
+        "Follow the clock",
+        "Always day",
+        "Always night",
+        "A day every 3 minutes"
+      ],
+      "group": "Day and night",
+      "description": "Follow the kiosk's clock, keep it day or night, or run through a whole day every three minutes to see it all."
+    },
+    {
+      "key": "sunrise",
+      "type": "select",
+      "title": "Sunrise",
+      "default": "08:00",
+      "options": [
+        "06:00",
+        "06:30",
+        "07:00",
+        "07:30",
+        "08:00",
+        "08:30",
+        "09:00",
+        "09:30",
+        "10:00"
+      ],
+      "group": "Day and night",
+      "description": "When it gets light. The sky brightens from about 50 minutes before."
+    },
+    {
+      "key": "sunset",
+      "type": "select",
+      "title": "Sunset",
+      "default": "16:00",
+      "options": [
+        "14:30",
+        "15:00",
+        "15:30",
+        "16:00",
+        "16:30",
+        "17:00",
+        "17:30",
+        "18:00",
+        "18:30",
+        "19:00",
+        "19:30",
+        "20:00"
+      ],
+      "group": "Day and night",
+      "description": "When it gets dark. The sunset glow starts about 50 minutes before."
+    },
+    {
+      "key": "snow",
+      "type": "select",
+      "title": "Snow",
+      "default": "Steady",
+      "options": [
+        "None",
+        "Light",
+        "Steady",
+        "Blizzard"
+      ],
+      "group": "Scene",
+      "description": "How much snow falls. A blizzard blows sideways."
+    },
+    {
+      "key": "santa",
+      "type": "boolean",
+      "title": "Santa at night",
+      "default": true,
+      "group": "Scene",
+      "description": "Santa's sleigh flies across the sky every minute or two at night."
+    }
+  ]
+}

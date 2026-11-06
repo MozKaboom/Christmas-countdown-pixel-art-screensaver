@@ -1,0 +1,60 @@
+# Christmas Village
+
+A [Kiosk Satellite](https://kiosksatellite.com) screensaver: an animated pixel art Christmas village that follows the time of day. By day the sun shines on the snow and clouds drift past. Towards sunset the sky turns orange and pink, and at night the moon comes up, the stars twinkle and Santa's sleigh flies across the sky. All day long the snow falls, the tree lights twinkle, the chimneys smoke and the river shimmers.
+
+## Installation
+
+### Manual
+
+1. Open **Settings > Plugin Manager** in Kiosk Satellite and turn on **Enable Plugins**.
+2. Choose **Add plugin**, paste `https://github.com/MozKaboom/christmas-village-screensaver` and choose **Preview**.
+3. Review the plugin and choose **Trust and install**.
+
+## Use it
+
+1. Enable **Christmas Village** from its entry row in Plugin Manager.
+2. Open **Screensaver > Screensaver mode** and pick **Christmas Village (Christmas Village)**. You can also pick it in a screensaver schedule entry.
+3. Start the screensaver from the kiosk menu, or wait for the idle timeout.
+
+The village fills the screen. On a screen narrower than the picture, such as a tablet in portrait, it drifts slowly from side to side so the whole village comes into view.
+
+## Settings
+
+| Setting | What it does |
+| --- | --- |
+| Time of day | **Follow the clock** uses the kiosk's own time. **Always day** and **Always night** hold one look. **A day every 3 minutes** runs through a whole day, sunrise to night, to show it all off. |
+| Sunrise | When it gets light. The sky starts to brighten about 50 minutes before. Default 08:00. |
+| Sunset | When it gets dark. The sunset glow starts about 50 minutes before. Default 16:00. |
+| Snow | None, Light, Steady or Blizzard. A blizzard blows sideways. |
+| Santa at night | Santa's sleigh flies across the sky every minute or two at night. |
+
+## Data and privacy
+
+Christmas Village makes no network requests and stores nothing. Everything it shows is inside the plugin.
+
+## How it works
+
+The screensaver is a web page in the plugin's `assets/village` folder, which Kiosk Satellite shows as a packaged screensaver. It draws the village by night and by day and blends between them as the clock moves through dawn and dusk. The snow, lights, stars, smoke, river and clouds are drawn on a layer of pixels the same size as the art's own, so they look part of the picture.
+
+To try the page on a computer, serve `assets/village` with any web server and open `index.html`. Add `?t=17:00` to see a set time of day, or `?demo` to run through a whole day in three minutes.
+
+## Credits
+
+- The village artwork is by MozKaboom.
+
+## Build
+
+Install Python 3, JDK 17 or newer and an Android SDK with a platform and build-tools. Set `ANDROID_HOME` and `JAVA_HOME` as needed.
+
+```sh
+python3 tools/test.py
+python3 tools/build.py
+```
+
+The build creates `dist/christmas-village-screensaver-<version>.zip`. To try it, open **Plugin Manager > Developer Tools > Install from ZIP** in Kiosk Satellite.
+
+Releases are built by the GitHub Actions workflow in `.github/workflows/build.yml` when a release is published.
+
+## License
+
+[Apache-2.0](LICENSE) for the code. The SDK interfaces in `sdk/` and the build tools in `tools/` come from the [Kiosk Satellite plugin template](https://github.com/jxlarrea/kiosk-satellite-plugins) under the same license.
