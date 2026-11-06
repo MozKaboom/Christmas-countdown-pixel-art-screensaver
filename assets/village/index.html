@@ -11,7 +11,15 @@
   /* The scene is drawn at the picture's own size and scaled to cover the screen. */
   #stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
   #stage canvas, #stage img { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
-  #base { width: 1672px; height: 941px; }
+  #night, #day, .glow { width: 1672px; height: 941px; }
+  #day { opacity: 0; }
+  /* The warm light of sunrise and sunset. */
+  .glow { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgb(150,70,160) 0%, rgb(255,110,80) 30%, rgb(255,170,90) 50%, rgb(170,110,150) 100%); }
+  #glow1 { mix-blend-mode: overlay; }
+  #glow2 { mix-blend-mode: soft-light; }
+  #diag { position: fixed; left: 8px; top: 8px; z-index: 9; margin: 0; padding: 8px 10px; max-width: 90vw;
+    font: 13px/1.4 monospace; color: #ff0; background: rgba(0,0,0,0.8); white-space: pre-wrap; display: none; }
   /* The effects are drawn at one dot per 7 picture pixels, the size of the art's own pixels. */
   #clouds, #fx { width: 1673px; height: 945px; }
   #clouds { opacity: 0; }
@@ -21,12 +29,16 @@
 <body>
 <div id="view">
   <div id="stage">
-    <canvas id="base" width="1672" height="941"></canvas>
+    <img id="night" src="night.webp" alt="">
+    <img id="day" src="day.webp" alt="">
+    <div class="glow" id="glow1"></div>
+    <div class="glow" id="glow2"></div>
     <canvas id="clouds" width="239" height="135"></canvas>
     <canvas id="sleigh" width="257" height="136"></canvas>
     <canvas id="fx" width="239" height="135"></canvas>
   </div>
 </div>
+<pre id="diag"></pre>
 <script src="spots.js"></script>
 <script src="village.js"></script>
 </body>

@@ -76,6 +76,7 @@ public final class VillagePlugin implements KioskPlugin {
         int snow = SNOW.indexOf(settings.get("snow"));
         options.put("snow", snow < 0 ? 2 : snow);
         options.put("santa", !Boolean.FALSE.equals(settings.get("santa")));
+        options.put("diagnostics", Boolean.TRUE.equals(settings.get("diagnostics")));
         return options;
     }
 

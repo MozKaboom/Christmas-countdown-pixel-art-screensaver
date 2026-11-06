@@ -19,9 +19,13 @@
   var snowLevel = Math.max(0, Math.min(3, Math.round(num(opts.snow, 2))));
   var santa = opts.santa !== false;
   var fixedTime = /^(\d\d?):(\d\d)$/.exec(query.get('t') || '');
+  var diagnostics = opts.diagnostics === true || query.has('diag');
+  var errors = [];
+  window.addEventListener('error', function (e) { errors.push(String(e.message || e) + (e.lineno ? ' @' + e.lineno : '')); });
 
   var stage = document.getElementById('stage');
-  var base = document.getElementById('base'), bctx = base.getContext('2d');
+  var nightImg = document.getElementById('night'), dayImg = document.getElementById('day');
+  var glow1 = document.getElementById('glow1'), glow2 = document.getElementById('glow2');
   var fx = document.getElementById('fx'), ctx = fx.getContext('2d');
   var cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
   var sleighCanvas = document.getElementById('sleigh'), sctx = sleighCanvas.getContext('2d');
@@ -31,7 +35,7 @@
     img.src = src;
     return img;
   }
-  var night = load('night.webp'), day = load('day.webp'), skyMask = load('sky.png'), sleighImg = load('sleigh.png');
+  var skyMask = load('sky.png'), sleighImg = load('sleigh.png');
   // Where the sky is, one value per dot of the effects layer: Santa and his sparkles only show there.
   var skyCells = null;
   skyMask.onload = function () {
@@ -82,32 +86,14 @@
   }
 
   // ---- The picture: night and day blended, warmed at dawn and dusk -------------------------
+  // Plain images faded with CSS, so the village shows even where canvas drawing struggles.
   var lastDay = -1, lastGlow = -1;
   function drawBase(d, g) {
-    if (!night.complete || !day.complete) return;
     if (Math.abs(d - lastDay) < 0.003 && Math.abs(g - lastGlow) < 0.003) return;
     lastDay = d; lastGlow = g;
-    bctx.globalCompositeOperation = 'source-over';
-    bctx.globalAlpha = 1;
-    bctx.drawImage(night, 0, 0, W, H);
-    if (d > 0) { bctx.globalAlpha = d; bctx.drawImage(day, 0, 0, W, H); }
-    if (g > 0.01) {
-      var grad = bctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, 'rgb(150,70,160)');
-      grad.addColorStop(0.3, 'rgb(255,110,80)');
-      grad.addColorStop(0.5, 'rgb(255,170,90)');
-      grad.addColorStop(1, 'rgb(170,110,150)');
-      bctx.fillStyle = grad;
-      bctx.globalCompositeOperation = 'overlay';
-      bctx.globalAlpha = 0.8 * g;
-      bctx.fillRect(0, 0, W, H);
-      // A warm wash over the sky and snow.
-      bctx.globalCompositeOperation = 'soft-light';
-      bctx.globalAlpha = 0.6 * g;
-      bctx.fillRect(0, 0, W, H);
-    }
-    bctx.globalAlpha = 1;
-    bctx.globalCompositeOperation = 'source-over';
+    dayImg.style.opacity = d.toFixed(3);
+    glow1.style.opacity = (0.8 * g).toFixed(3);
+    glow2.style.opacity = (0.6 * g).toFixed(3);
   }
 
   // ---- Fitting the screen ------------------------------------------------------------------
@@ -244,31 +230,44 @@
   }
 
   // ---- Chimney smoke -------------------------------------------------------------------------
-  var chimneys = S.chimneys.map(function (c) { return { gx: c[0] / P, gy: c[1] / P, next: 0 }; });
+  // A plume of round puffs that swell, drift with the wind and fade as they rise. Santa flies
+  // behind it.
+  var chimneys = S.chimneys.map(function (c, i) { return { gx: c[0] / P, gy: c[1] / P - 0.5, next: 0, small: i > 0 }; });
   var puffs = [];
+  function disc(cx, cy, r) {
+    var ri = Math.ceil(r);
+    for (var dy = -ri; dy <= ri; dy++) {
+      var half = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy)) + 0.35);
+      if (half < 0) continue;
+      ctx.fillRect(Math.round(cx) - half, Math.round(cy) + dy, half * 2 + 1, 1);
+    }
+  }
   function drawSmoke(dt, d) {
     for (var c = 0; c < chimneys.length; c++) {
       var ch = chimneys[c];
       ch.next -= dt;
       if (ch.next <= 0) {
-        ch.next = rand(0.45, 0.8);
-        puffs.push({ x: ch.gx + rand(-0.6, 0.6), y: ch.gy, age: 0, life: rand(5, 7.5), ph: rand(0, 6.3), small: c > 0 });
+        ch.next = ch.small ? rand(0.3, 0.45) : rand(0.16, 0.24);
+        puffs.push({ x: ch.gx + rand(-0.6, 0.6), y: ch.gy, age: 0, life: ch.small ? rand(3.5, 4.5) : rand(5.5, 7), ph: rand(0, 6.3), small: ch.small });
       }
     }
-    var tint = d > 0.5 ? [238, 238, 244] : [200, 200, 232];
+    var body = d > 0.5 ? '186,192,208' : '150,156,212';
+    var light = d > 0.5 ? '236,239,245' : '200,202,238';
     for (var i = puffs.length - 1; i >= 0; i--) {
       var p = puffs[i];
       p.age += dt;
       if (p.age >= p.life) { puffs.splice(i, 1); continue; }
       var k = p.age / p.life;
-      var x = p.x + (wind * 0.5 + 0.35) * p.age + Math.sin(p.age * 1.3 + p.ph) * 0.7;
-      var y = p.y - (p.small ? 1.2 : 1.6) * p.age;
-      var size = Math.round((p.small ? 1 : 1.2) + k * (p.small ? 1.4 : 2.4));
-      var a = 0.55 * Math.pow(1 - k, 1.3) * Math.min(1, p.age / 0.4);
-      ctx.fillStyle = 'rgba(' + tint[0] + ',' + tint[1] + ',' + tint[2] + ',' + a.toFixed(3) + ')';
-      var gx = Math.round(x - size / 2), gy = Math.round(y - size / 2);
-      if (size < 3) ctx.fillRect(gx, gy, size, size);
-      else { ctx.fillRect(gx + 1, gy, size - 2, size); ctx.fillRect(gx, gy + 1, size, size - 2); }
+      var x = p.x + (wind * 0.3 + 0.7) * p.age * (0.4 + k) + Math.sin(p.age * 1.2 + p.ph) * 1.1;
+      var y = p.y - (p.small ? 2.6 : 3.4) * p.age * (1 - 0.3 * k);
+      var r = (p.small ? 1.2 : 2) + k * (p.small ? 2.2 : 4.5);
+      var a = (p.small ? 0.7 : 0.85) * Math.pow(1 - k, 1.1) * Math.min(1, p.age / 0.3);
+      ctx.fillStyle = 'rgba(' + body + ',' + a.toFixed(3) + ')';
+      disc(x, y, r);
+      if (r > 1.4) {
+        ctx.fillStyle = 'rgba(' + light + ',' + (a * 0.7).toFixed(3) + ')';
+        disc(x - r * 0.3, y - r * 0.3, r * 0.55);
+      }
     }
   }
 
@@ -380,13 +379,50 @@
     }
   }
 
+  // ---- Diagnostics -------------------------------------------------------------------------
+  var frames = 0, diagBox = document.getElementById('diag'), diagAt = performance.now();
+  function showDiagnostics(t, m, d) {
+    frames++;
+    if (!diagnostics || t - diagAt < 1000) return;
+    var fps = Math.round(frames * 1000 / (t - diagAt));
+    frames = 0; diagAt = t;
+    function img(i) { return i.complete ? (i.naturalWidth ? 'ok ' + i.naturalWidth + 'x' + i.naturalHeight : 'FAILED') : 'loading'; }
+    diagBox.style.display = 'block';
+    diagBox.textContent = [
+      'Christmas Village diagnostics',
+      'screen ' + sizedW + 'x' + sizedH + ' window ' + window.innerWidth + 'x' + window.innerHeight + ' ratio ' + (window.devicePixelRatio || 1),
+      'scale ' + scale.toFixed(3) + ' spare ' + Math.round(spareX) + ',' + Math.round(spareY),
+      'frames/s ' + fps + '  time ' + Math.floor(m / 60) + ':' + ('0' + Math.floor(m % 60)).slice(-2) + '  daylight ' + d.toFixed(2),
+      'night ' + img(nightImg) + '  day ' + img(dayImg) + '  sky ' + img(skyMask) + '  sleigh ' + img(sleighImg),
+      'settings ' + JSON.stringify(opts),
+      errors.length ? 'errors: ' + errors.slice(-3).join(' | ') : 'no errors',
+      navigator.userAgent
+    ].join(String.fromCharCode(10));
+  }
+
   // ---- The loop ------------------------------------------------------------------------------
-  var last = performance.now();
+  var last = performance.now(), pending = false, lastCall = performance.now();
+  function next() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function (t) { pending = false; frame(t); });
+  }
+  // Some WebViews hold back animation frames, for a while or for good. Then a timer keeps the
+  // scene moving instead.
+  setInterval(function () { if (performance.now() - lastCall > 400) frame(performance.now()); }, 50);
   function frame(t) {
-    requestAnimationFrame(frame);
+    lastCall = performance.now();
+    next();
     var dt = (t - last) / 1000;
     if (dt < 1 / 32) return; // about 30 frames a second is plenty
     last = t;
+    try { tick(t, dt); } catch (e) {
+      errors.push(String(e && e.message || e));
+      if (window.console) console.error(e);
+    }
+    try { showDiagnostics(t, minutesNow(), daylight(minutesNow())); } catch (e) { /* never stop the loop */ }
+  }
+  function tick(t, dt) {
     if (dt > 0.25) dt = 0.25;
     var m = minutesNow(), d = daylight(m), n = 1 - d;
     drawBase(d, glow(m));
@@ -401,6 +437,5 @@
     drawSanta(dt, n);
     drawSnow(dt, t, d);
   }
-  night.onload = day.onload = function () { lastDay = -1; };
-  requestAnimationFrame(frame);
+  next();
 })();

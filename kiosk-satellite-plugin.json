@@ -91,6 +91,14 @@
       "default": true,
       "group": "Scene",
       "description": "Santa's sleigh flies across the sky every minute or two at night."
+    },
+    {
+      "key": "diagnostics",
+      "type": "boolean",
+      "title": "Show diagnostics",
+      "default": false,
+      "group": "Troubleshooting",
+      "description": "Show the screen size, frame rate, whether the pictures loaded and any errors in the corner of the screensaver. For tracking down a problem."
     }
   ]
 }

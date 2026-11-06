@@ -38,6 +38,8 @@ public final class VillageTest {
         Map<String, Object> o = VillagePlugin.options(map());
         assert "auto".equals(o.get("timeOfDay")) && o.get("sunrise").equals(480) && o.get("sunset").equals(960) : o;
         assert o.get("snow").equals(2) && Boolean.TRUE.equals(o.get("santa")) : o;
+        assert Boolean.FALSE.equals(o.get("diagnostics")) : o;
+        assert Boolean.TRUE.equals(VillagePlugin.options(map("diagnostics", true)).get("diagnostics"));
 
         // Every setting.
         o = VillagePlugin.options(map("timeOfDay", "Always night", "sunrise", "07:30", "sunset", "17:00", "snow", "Blizzard", "santa", false));
