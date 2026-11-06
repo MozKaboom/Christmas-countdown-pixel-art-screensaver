@@ -24,14 +24,32 @@
   var base = document.getElementById('base'), bctx = base.getContext('2d');
   var fx = document.getElementById('fx'), ctx = fx.getContext('2d');
   var cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
-  var sleighImg = document.getElementById('sleigh');
+  var sleighCanvas = document.getElementById('sleigh'), sctx = sleighCanvas.getContext('2d');
 
   function load(src) {
     var img = new Image();
     img.src = src;
     return img;
   }
-  var night = load('night.webp'), day = load('day.webp'), skyMask = load('sky.png');
+  var night = load('night.webp'), day = load('day.webp'), skyMask = load('sky.png'), sleighImg = load('sleigh.png');
+  // Where the sky is, one value per dot of the effects layer: Santa and his sparkles only show there.
+  var skyCells = null;
+  skyMask.onload = function () {
+    try {
+      var c = document.createElement('canvas');
+      c.width = GW; c.height = GH;
+      var g = c.getContext('2d');
+      g.drawImage(skyMask, 0, 0);
+      var data = g.getImageData(0, 0, GW, GH).data;
+      skyCells = new Uint8Array(GW * GH);
+      for (var i = 0; i < GW * GH; i++) skyCells[i] = data[i * 4 + 3] > 128 ? 1 : 0;
+    } catch (e) { skyCells = null; }
+  };
+  function isSky(gx, gy) {
+    if (!skyCells) return true;
+    gx = Math.round(gx); gy = Math.round(gy);
+    return gx >= 0 && gy >= 0 && gx < GW && gy < GH && skyCells[gy * GW + gx] === 1;
+  }
 
   function clamp(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function smooth(x) { x = clamp(x); return x * x * (3 - 2 * x); }
@@ -95,34 +113,44 @@
   // ---- Fitting the screen ------------------------------------------------------------------
   // The scene covers the screen. On a screen narrower than the picture, as in portrait, it
   // drifts slowly from side to side so the whole village comes into view.
-  var scale = 1, spareX = 0, spareY = 0;
+  var scale = 1, spareX = 0, spareY = 0, sizedW = 0, sizedH = 0;
   var view = document.getElementById('view');
+  // The page can open before the screensaver has its size, and a resize event doesn't always
+  // follow, so the size is checked again every frame until it is known and then once a second.
   function layout() {
-    var vw = view.clientWidth || window.innerWidth, vh = view.clientHeight || window.innerHeight;
+    var vw = view.clientWidth || window.innerWidth || document.documentElement.clientWidth;
+    var vh = view.clientHeight || window.innerHeight || document.documentElement.clientHeight;
+    if (!vw || !vh) return false;
+    if (vw === sizedW && vh === sizedH) return true;
+    sizedW = vw; sizedH = vh;
     scale = Math.max(vw / W, vh / H);
     spareX = Math.max(0, W * scale - vw);
     spareY = Math.max(0, H * scale - vh);
+    return true;
   }
-  window.addEventListener('resize', layout);
+  window.addEventListener('resize', function () { sizedW = 0; layout(); });
   layout();
-  place(performance.now());
+  var sizeCheck = 0;
   function place(t) {
+    if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
+    if (!sizedW) return;
     var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / 240)) : 0;
-    // A wide screen loses some sky, never the village.
-    var y = -spareY * 0.75;
+    // A screen wider than the picture loses a little sky and the rest from the foreground, so
+    // the star on the tree stays in view.
+    var y = -spareY * 0.1;
     stage.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale + ')';
   }
 
   // ---- Snow ---------------------------------------------------------------------------------
   var flakes = [];
-  var FLAKES = [0, 70, 160, 340][snowLevel];
-  var wind = snowLevel === 3 ? 3 : 0.5;
+  var FLAKES = [0, 90, 200, 480][snowLevel];
+  var wind = snowLevel === 3 ? 9 : 0.8, fall = snowLevel === 3 ? 1.6 : 1;
   for (var i = 0; i < FLAKES; i++) flakes.push(newFlake(true));
   function newFlake(anywhere) {
     var near = Math.random() < 0.45;
     return {
-      x: rand(-10, GW + 10), y: anywhere ? rand(0, GH) : rand(-6, -1),
-      vy: near ? rand(3.2, 4.6) : rand(1.6, 2.6), near: near,
+      x: rand(anywhere ? -10 : -10 - wind * 12, GW + 10), y: anywhere ? rand(0, GH) : rand(-6, -1),
+      vy: (near ? rand(6, 9) : rand(3.2, 4.8)) * fall, near: near,
       ph: rand(0, 6.3), sway: rand(0.4, 1.1)
     };
   }
@@ -132,7 +160,7 @@
     for (var i = 0; i < flakes.length; i++) {
       var f = flakes[i];
       f.y += f.vy * dt;
-      f.x += (wind * (f.near ? 1 : 0.6)) * dt + Math.sin(t / 1000 * f.sway + f.ph) * 0.35 * dt;
+      f.x += (wind * (f.near ? 1 : 0.6)) * dt + Math.sin(t / 1000 * f.sway + f.ph) * 0.6 * dt;
       if (f.y > GH + 1 || f.x > GW + 12) { flakes[i] = newFlake(false); continue; }
       ctx.fillStyle = f.near ? nearColor : farColor;
       ctx.fillRect(Math.round(f.x), Math.round(f.y), 1, 1);
@@ -266,25 +294,38 @@
   }
 
   // ---- Santa ---------------------------------------------------------------------------------
-  // At night the sleigh crosses the sky every minute or two, trailing sparkles.
-  var SLEIGH_W = 302, SLEIGH_SCALE = 0.85;
+  // At night the sleigh crosses the sky every minute or two, trailing sparkles. It flies low,
+  // behind the chimney smoke, the snow, the trees and the roofs.
+  var SLEIGH_W = 257, SLEIGH_H = 136;
   var flight = null, nextFlight = 8, trail = [];
   function drawSanta(dt, n) {
     if (!santa) return;
     if (!flight) {
       if (n > 0.6) nextFlight -= dt;
-      if (nextFlight <= 0) { flight = { age: 0, life: 17, y: rand(60, 150) }; nextFlight = rand(70, 150); }
+      if (nextFlight <= 0) { flight = { age: 0, life: 17, y: rand(120, 165) }; nextFlight = rand(70, 150); }
     }
     if (flight) {
       flight.age += dt;
       var k = flight.age / flight.life;
-      if (k >= 1) { flight = null; sleighImg.style.display = 'none'; }
+      if (k >= 1) { flight = null; sleighCanvas.style.display = 'none'; }
       else {
-        var x = -SLEIGH_W * SLEIGH_SCALE + k * (W + SLEIGH_W * SLEIGH_SCALE * 1.1);
-        var y = flight.y - 45 * Math.sin(k * Math.PI) + 5 * Math.sin(flight.age * 5);
-        sleighImg.style.display = 'block';
-        sleighImg.style.transform = 'translate(' + Math.round(x / P) * P + 'px,' + Math.round(y / P) * P + 'px) scale(' + SLEIGH_SCALE + ')';
-        if (Math.random() < dt * 25) trail.push({ x: (x + 30) / P + rand(-1, 1), y: (y + 105) / P + rand(-1, 1), age: 0, life: rand(0.8, 1.6) });
+        var x = Math.round((-SLEIGH_W + k * (W + SLEIGH_W * 1.1)) / P) * P;
+        var y = Math.round((flight.y - 40 * Math.sin(k * Math.PI) + 5 * Math.sin(flight.age * 5)) / P) * P;
+        if (sleighImg.complete && sleighImg.naturalWidth) {
+          sctx.globalCompositeOperation = 'source-over';
+          sctx.clearRect(0, 0, SLEIGH_W, SLEIGH_H);
+          sctx.drawImage(sleighImg, 0, 0, SLEIGH_W, SLEIGH_H);
+          if (skyMask.complete && skyMask.naturalWidth) {
+            // Cut away whatever is in front of the sky here: trees, roofs, hills.
+            sctx.imageSmoothingEnabled = false;
+            sctx.globalCompositeOperation = 'destination-in';
+            sctx.drawImage(skyMask, x / P, y / P, SLEIGH_W / P, SLEIGH_H / P, 0, 0, SLEIGH_W, SLEIGH_H);
+            sctx.globalCompositeOperation = 'source-over';
+          }
+          sleighCanvas.style.display = 'block';
+          sleighCanvas.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        }
+        if (Math.random() < dt * 25) trail.push({ x: (x + 26) / P + rand(-1, 1), y: (y + 90) / P + rand(-1, 1), age: 0, life: rand(0.8, 1.6) });
       }
     }
     ctx.globalCompositeOperation = 'lighter';
@@ -292,6 +333,7 @@
       var s = trail[i];
       s.age += dt;
       if (s.age >= s.life) { trail.splice(i, 1); continue; }
+      if (!isSky(s.x, s.y + s.age * 0.8)) continue;
       ctx.fillStyle = 'rgba(255,214,110,' + (0.8 * (1 - s.age / s.life)).toFixed(3) + ')';
       ctx.fillRect(Math.round(s.x), Math.round(s.y + s.age * 0.8), 1, 1);
     }
