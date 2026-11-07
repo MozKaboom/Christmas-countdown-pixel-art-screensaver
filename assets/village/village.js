@@ -24,15 +24,16 @@
   window.addEventListener('error', function (e) { errors.push(String(e.message || e) + (e.lineno ? ' @' + e.lineno : '')); });
 
   var stage = document.getElementById('stage');
-  var nightImg = document.getElementById('night'), dayImg = document.getElementById('day');
-  var glow1 = document.getElementById('glow1'), glow2 = document.getElementById('glow2');
+  // The picture goes on one canvas, redrawn only as the light changes. A few small layers keep
+  // the memory low, which matters on modest tablets scaling the scene up to fill the screen.
+  var base = document.getElementById('base'), bctx = base.getContext('2d');
   var fx = document.getElementById('fx'), ctx = fx.getContext('2d');
   var cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
   var sleighCanvas = document.getElementById('sleigh'), sctx = sleighCanvas.getContext('2d');
   // Everything is sized from the picture.
   function size(el, w, h) { el.style.width = w + 'px'; el.style.height = h + 'px'; }
   size(stage, W, H);
-  [nightImg, dayImg, glow1, glow2].forEach(function (el) { size(el, W, H); });
+  base.width = W; base.height = H; size(base, W, H);
   [fx, cloudCanvas].forEach(function (c) { c.width = GW; c.height = GH; size(c, GW * P, GH * P); });
 
   function load(src) {
@@ -40,7 +41,8 @@
     img.src = src;
     return img;
   }
-  var skyMask = load('sky.png'), sleighImg = load('sleigh.png');
+  var nightImg = load('night.webp'), dayImg = load('day.webp'), skyMask = load('sky.png'), sleighImg = load('sleigh.png');
+  nightImg.onload = dayImg.onload = function () { lastDay = -1; };
   // Where the sky is, one value per dot of the effects layer: Santa and his sparkles only show there.
   var skyCells = null;
   skyMask.onload = function () {
@@ -91,14 +93,31 @@
   }
 
   // ---- The picture: night and day blended, warmed at dawn and dusk -------------------------
-  // Plain images faded with CSS, so the village shows even where canvas drawing struggles.
   var lastDay = -1, lastGlow = -1;
   function drawBase(d, g) {
+    if (!nightImg.complete || !nightImg.naturalWidth || !dayImg.complete || !dayImg.naturalWidth) return;
     if (Math.abs(d - lastDay) < 0.003 && Math.abs(g - lastGlow) < 0.003) return;
     lastDay = d; lastGlow = g;
-    dayImg.style.opacity = d.toFixed(3);
-    glow1.style.opacity = (0.8 * g).toFixed(3);
-    glow2.style.opacity = (0.6 * g).toFixed(3);
+    bctx.globalCompositeOperation = 'source-over';
+    bctx.globalAlpha = 1;
+    bctx.drawImage(nightImg, 0, 0, W, H);
+    if (d > 0) { bctx.globalAlpha = d; bctx.drawImage(dayImg, 0, 0, W, H); }
+    if (g > 0.01) {
+      var grad = bctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, 'rgb(150,70,160)');
+      grad.addColorStop(0.3, 'rgb(255,110,80)');
+      grad.addColorStop(0.5, 'rgb(255,170,90)');
+      grad.addColorStop(1, 'rgb(170,110,150)');
+      bctx.fillStyle = grad;
+      bctx.globalCompositeOperation = 'overlay';
+      bctx.globalAlpha = 0.8 * g;
+      bctx.fillRect(0, 0, W, H);
+      bctx.globalCompositeOperation = 'soft-light';
+      bctx.globalAlpha = 0.6 * g;
+      bctx.fillRect(0, 0, W, H);
+    }
+    bctx.globalAlpha = 1;
+    bctx.globalCompositeOperation = 'source-over';
   }
 
   // ---- Fitting the screen ------------------------------------------------------------------
