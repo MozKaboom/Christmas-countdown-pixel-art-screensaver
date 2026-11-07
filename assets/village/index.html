@@ -8,7 +8,12 @@
   html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0b1030; }
   /* The screen. It clips the scene, so the scene never widens the page. */
   #view { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
-  /* The scene is drawn at the picture's own size and scaled to cover the screen. */
+  /* On a screen wider than the picture, the whole picture shows and a blurred copy fills the sides. */
+  #backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; display: none; }
+  #backdrop img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover;
+    transform: scale(1.15); filter: blur(18px) brightness(0.6); }
+  #bday { opacity: 0; }
+  /* The scene is drawn at the picture's own size and scaled to fit the screen. */
   #stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
   #stage canvas, #stage img { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
   #night, #day, .glow { width: 1672px; height: 941px; }
@@ -28,6 +33,10 @@
 </head>
 <body>
 <div id="view">
+  <div id="backdrop">
+    <img id="bnight" src="night.webp" alt="">
+    <img id="bday" src="day.webp" alt="">
+  </div>
   <div id="stage">
     <img id="night" src="night.webp" alt="">
     <img id="day" src="day.webp" alt="">

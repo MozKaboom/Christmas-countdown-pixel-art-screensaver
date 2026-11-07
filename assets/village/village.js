@@ -26,6 +26,7 @@
   var stage = document.getElementById('stage');
   var nightImg = document.getElementById('night'), dayImg = document.getElementById('day');
   var glow1 = document.getElementById('glow1'), glow2 = document.getElementById('glow2');
+  var backdrop = document.getElementById('backdrop'), backdropDay = document.getElementById('bday');
   var fx = document.getElementById('fx'), ctx = fx.getContext('2d');
   var cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
   var sleighCanvas = document.getElementById('sleigh'), sctx = sleighCanvas.getContext('2d');
@@ -92,14 +93,16 @@
     if (Math.abs(d - lastDay) < 0.003 && Math.abs(g - lastGlow) < 0.003) return;
     lastDay = d; lastGlow = g;
     dayImg.style.opacity = d.toFixed(3);
+    backdropDay.style.opacity = d.toFixed(3);
     glow1.style.opacity = (0.8 * g).toFixed(3);
     glow2.style.opacity = (0.6 * g).toFixed(3);
   }
 
   // ---- Fitting the screen ------------------------------------------------------------------
-  // The scene covers the screen. On a screen narrower than the picture, as in portrait, it
-  // drifts slowly from side to side so the whole village comes into view.
-  var scale = 1, spareX = 0, spareY = 0, sizedW = 0, sizedH = 0;
+  // The picture always fills the screen's height. On a screen narrower than the picture, as in
+  // portrait, it drifts slowly from side to side so the whole village comes into view. On a
+  // wider one the whole picture shows, centred, with a blurred copy filling the sides.
+  var scale = 1, spareX = 0, spareY = 0, sizedW = 0, sizedH = 0, offsetX = 0;
   var view = document.getElementById('view');
   // The page can open before the screensaver has its size, and a resize event doesn't always
   // follow, so the size is checked again every frame until it is known and then once a second.
@@ -109,9 +112,11 @@
     if (!vw || !vh) return false;
     if (vw === sizedW && vh === sizedH) return true;
     sizedW = vw; sizedH = vh;
-    scale = Math.max(vw / W, vh / H);
+    scale = vh / H;
     spareX = Math.max(0, W * scale - vw);
-    spareY = Math.max(0, H * scale - vh);
+    spareY = 0;
+    offsetX = Math.max(0, (vw - W * scale) / 2);
+    backdrop.style.display = offsetX > 1 ? 'block' : 'none';
     return true;
   }
   window.addEventListener('resize', function () { sizedW = 0; layout(); });
@@ -120,10 +125,8 @@
   function place(t) {
     if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
     if (!sizedW) return;
-    var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / 240)) : 0;
-    // A screen wider than the picture loses a little sky and the rest from the foreground, so
-    // the star on the tree stays in view.
-    var y = -spareY * 0.1;
+    var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / 240)) : offsetX;
+    var y = 0;
     stage.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale + ')';
   }
 
