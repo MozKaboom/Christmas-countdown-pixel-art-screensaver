@@ -16,7 +16,7 @@ A [Kiosk Satellite](https://kiosksatellite.com) screensaver: an animated pixel a
 2. Open **Screensaver > Screensaver mode** and pick **Christmas Village (Christmas Village)**. You can also pick it in a screensaver schedule entry.
 3. Start the screensaver from the kiosk menu, or wait for the idle timeout.
 
-The village fills the screen. On a screen narrower than the picture, such as a tablet in portrait, it drifts slowly from side to side so the whole village comes into view.
+The village fills the screen with no borders. The picture is wider than most screens, with snowy woods and fields either side of the village, so it drifts slowly from side to side to show it all.
 
 ## Settings
 
