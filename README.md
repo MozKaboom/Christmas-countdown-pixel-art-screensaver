@@ -2,6 +2,12 @@
 
 A [Kiosk Satellite](https://kiosksatellite.com) screensaver: an animated pixel art Christmas village that follows the time of day. By day the sun shines on the snow and clouds drift past. Towards sunset the sky turns orange and pink, and at night the moon comes up, the stars twinkle and Santa's sleigh flies across the sky. All day long the snow falls, the tree lights twinkle, the chimneys smoke and the river shimmers.
 
+![Christmas Village at night: a snowy pixel art village under a full moon, with a lit Christmas tree, a snowman and a countdown to Christmas at the top](https://raw.githubusercontent.com/MozKaboom/christmas-village-screensaver/main/docs/screenshots/night.webp)
+
+![Christmas Village by day, with the clock showing at the top](https://raw.githubusercontent.com/MozKaboom/christmas-village-screensaver/main/docs/screenshots/day.webp)
+
+<img src="https://raw.githubusercontent.com/MozKaboom/christmas-village-screensaver/main/docs/screenshots/portrait.webp" alt="Christmas Village on a portrait screen, with the countdown at the top" width="320">
+
 ## Installation
 
 ### Manual
