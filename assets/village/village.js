@@ -494,7 +494,7 @@
     hctx.clearRect(0, 0, cols, rows);
     // Centred near the top, in the sky. The clock is two or three times the size, less on a
     // narrow screen.
-    var y = 3;
+    var y = sizedW > sizedH ? 6 : 3;  // a little more room above it in landscape
     lines.forEach(function (l) {
       var w = textWidth(l.text), s = 1;
       if (l.big) s = Math.max(1, Math.min(3, Math.floor((cols * 0.8) / w)));
