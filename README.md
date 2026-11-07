@@ -10,6 +10,14 @@ A [Kiosk Satellite](https://kiosksatellite.com) screensaver: an animated pixel a
 
 ## Installation
 
+### Community Plugins (Recommended)
+
+Christmas Village is listed in [Community Plugins](https://kiosksatellite.com/plugins/). Use the button below to open it in your Kiosk Satellite and install it.
+
+[![Install in Kiosk Satellite](https://kiosksatellite.com/img/badges/plugin-add.svg)](https://kiosksatellite.com/redirect/plugin/?repository=MozKaboom/Christmas-countdown-pixel-art-screensaver)
+
+Or search for `Christmas Village` in **Settings > Plugin Manager > Browse plugins** in Kiosk Satellite.
+
 ### Manual
 
 1. Open **Settings > Plugin Manager** in Kiosk Satellite and turn on **Enable Plugins**.
