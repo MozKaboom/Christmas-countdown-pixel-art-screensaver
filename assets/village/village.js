@@ -147,8 +147,8 @@
   function place(t) {
     if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
     if (!sizedW) return;
-    // A steady, slow drift, about 13 screen pixels a second, starting on the village.
-    var period = Math.max(135, 2 * spareX / 13);
+    // A steady, slow drift, about 26 screen pixels a second, starting on the village.
+    var period = Math.max(70, 2 * spareX / 26);
     var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / period)) : 0;
     // A screen even wider than the picture loses a little sky and the rest from the foreground.
     var y = -spareY * 0.2;
