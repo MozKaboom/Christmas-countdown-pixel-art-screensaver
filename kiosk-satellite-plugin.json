@@ -85,12 +85,20 @@
       "description": "How much snow falls. A blizzard blows sideways."
     },
     {
-      "key": "santa",
-      "type": "boolean",
-      "title": "Santa at night",
-      "default": true,
+      "key": "santaEvery",
+      "type": "select",
+      "title": "Santa flies past",
+      "default": "Every 2 minutes",
+      "options": [
+        "Never",
+        "Every minute",
+        "Every 2 minutes",
+        "Every 5 minutes",
+        "Every 10 minutes",
+        "Every 30 minutes"
+      ],
       "group": "Scene",
-      "description": "Santa's sleigh flies across the sky every minute or two at night."
+      "description": "How often Santa's sleigh crosses the sky at night. He also flies past soon after the screensaver starts."
     },
     {
       "key": "diagnostics",

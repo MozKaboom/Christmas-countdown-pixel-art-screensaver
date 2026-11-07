@@ -37,14 +37,15 @@ public final class VillageTest {
         // Defaults.
         Map<String, Object> o = VillagePlugin.options(map());
         assert "auto".equals(o.get("timeOfDay")) && o.get("sunrise").equals(480) && o.get("sunset").equals(960) : o;
-        assert o.get("snow").equals(2) && Boolean.TRUE.equals(o.get("santa")) : o;
+        assert o.get("snow").equals(2) && o.get("santaEvery").equals(120) : o;
         assert Boolean.FALSE.equals(o.get("diagnostics")) : o;
         assert Boolean.TRUE.equals(VillagePlugin.options(map("diagnostics", true)).get("diagnostics"));
 
         // Every setting.
-        o = VillagePlugin.options(map("timeOfDay", "Always night", "sunrise", "07:30", "sunset", "17:00", "snow", "Blizzard", "santa", false));
+        o = VillagePlugin.options(map("timeOfDay", "Always night", "sunrise", "07:30", "sunset", "17:00", "snow", "Blizzard", "santaEvery", "Never"));
         assert "night".equals(o.get("timeOfDay")) && o.get("sunrise").equals(450) && o.get("sunset").equals(1020) : o;
-        assert o.get("snow").equals(3) && Boolean.FALSE.equals(o.get("santa")) : o;
+        assert o.get("snow").equals(3) && o.get("santaEvery").equals(0) : o;
+        assert VillagePlugin.options(map("santaEvery", "Every 30 minutes")).get("santaEvery").equals(1800);
         assert "fast".equals(VillagePlugin.options(map("timeOfDay", "A day every 3 minutes")).get("timeOfDay"));
         assert VillagePlugin.options(map("snow", "None")).get("snow").equals(0);
 

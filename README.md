@@ -16,7 +16,7 @@ A [Kiosk Satellite](https://kiosksatellite.com) screensaver: an animated pixel a
 2. Open **Screensaver > Screensaver mode** and pick **Christmas Village (Christmas Village)**. You can also pick it in a screensaver schedule entry.
 3. Start the screensaver from the kiosk menu, or wait for the idle timeout.
 
-The village fills the screen with no borders. The picture is wider than most screens, with snowy woods and fields either side of the village, so it drifts slowly from side to side to show it all.
+The village fills the screen's height with no borders, in landscape and portrait. The picture is much wider than the screen, with pine woods and snowy fields either side of the village, so it scrolls slowly from side to side to show it all.
 
 ## Settings
 
@@ -25,8 +25,9 @@ The village fills the screen with no borders. The picture is wider than most scr
 | Time of day | **Follow the clock** uses the kiosk's own time. **Always day** and **Always night** hold one look. **A day every 3 minutes** runs through a whole day, sunrise to night, to show it all off. |
 | Sunrise | When it gets light. The sky starts to brighten about 50 minutes before. Default 08:00. |
 | Sunset | When it gets dark. The sunset glow starts about 50 minutes before. Default 16:00. |
-| Snow | None, Light, Steady or Blizzard. A blizzard blows sideways. |
-| Santa at night | Santa's sleigh flies across the sky every minute or two at night. |
+| Snow | None, Light, Steady or Blizzard. A blizzard is thick, fast and blows sideways. |
+| Santa flies past | How often Santa's sleigh crosses the sky at night: never, or every 1, 2, 5, 10 or 30 minutes. He also flies past soon after the screensaver starts. Default every 2 minutes. |
+| Show diagnostics | Shows the screen size, frame rate, whether the pictures loaded and any errors in the corner, for tracking down a problem. |
 
 ## Data and privacy
 

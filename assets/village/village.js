@@ -17,7 +17,8 @@
   var sunrise = num(opts.sunrise, 480), sunset = num(opts.sunset, 960);
   if (sunset <= sunrise + 60) sunset = sunrise + 60;
   var snowLevel = Math.max(0, Math.min(3, Math.round(num(opts.snow, 2))));
-  var santa = opts.santa !== false;
+  // Seconds between Santa's flights. 0 is never.
+  var santaEvery = Math.max(0, num(opts.santaEvery, 120));
   var fixedTime = /^(\d\d?):(\d\d)$/.exec(query.get('t') || '');
   var diagnostics = opts.diagnostics === true || query.has('diag');
   var errors = [];
@@ -144,7 +145,9 @@
   function place(t) {
     if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
     if (!sizedW) return;
-    var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / 240)) : 0;
+    // A steady, slow drift, about 10 screen pixels a second, starting on the village.
+    var period = Math.max(180, 2 * spareX / 10);
+    var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / period)) : 0;
     // A screen even wider than the picture loses a little sky and the rest from the foreground.
     var y = -spareY * 0.2;
     stage.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale + ')';
@@ -152,8 +155,9 @@
 
   // ---- Snow ---------------------------------------------------------------------------------
   var flakes = [];
-  var FLAKES = [0, 90, 200, 480][snowLevel];
-  var wind = snowLevel === 3 ? 9 : 0.8, fall = snowLevel === 3 ? 1.6 : 1;
+  // As many flakes for the scene's width as there would be on a 1672 pixel wide picture.
+  var FLAKES = Math.round([0, 90, 200, 1000][snowLevel] * GW / 239);
+  var wind = snowLevel === 3 ? 12 : 0.8, fall = snowLevel === 3 ? 1.8 : 1;
   for (var i = 0; i < FLAKES; i++) flakes.push(newFlake(true));
   function newFlake(anywhere) {
     var near = Math.random() < 0.45;
@@ -321,10 +325,10 @@
   var SLEIGH_W = 257, SLEIGH_H = 136;
   var flight = null, nextFlight = 8, trail = [];
   function drawSanta(dt, n) {
-    if (!santa) return;
+    if (!santaEvery) return;
     if (!flight) {
       if (n > 0.6) nextFlight -= dt;
-      if (nextFlight <= 0) { flight = { age: 0, life: 17, y: rand(120, 165) }; nextFlight = rand(70, 150); }
+      if (nextFlight <= 0) { flight = { age: 0, life: 17, y: rand(120, 165) }; nextFlight = santaEvery * rand(0.85, 1.15); }
     }
     if (flight) {
       flight.age += dt;
