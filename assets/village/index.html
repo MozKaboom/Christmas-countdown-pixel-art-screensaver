@@ -12,6 +12,8 @@
      the sizes from the picture's. */
   #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
   #stage canvas, #stage img { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
+  /* The clock and countdown: fixed on the screen while the scene scrolls behind. */
+  #hud { position: fixed; left: 0; top: 0; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; display: none; }
   #diag { position: fixed; left: 8px; top: 8px; z-index: 9; margin: 0; padding: 8px 10px; max-width: 90vw;
     font: 13px/1.4 monospace; color: #ff0; background: rgba(0,0,0,0.8); white-space: pre-wrap; display: none; }
   /* The effects are drawn at one dot per 7 picture pixels, the size of the art's own pixels. */
@@ -28,6 +30,7 @@
     <canvas id="fx"></canvas>
   </div>
 </div>
+<canvas id="hud"></canvas>
 <pre id="diag"></pre>
 <script src="spots.js"></script>
 <script src="village.js"></script>

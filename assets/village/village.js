@@ -21,6 +21,8 @@
   var santaEvery = Math.max(0, num(opts.santaEvery, 120));
   var fixedTime = /^(\d\d?):(\d\d)$/.exec(query.get('t') || '');
   var diagnostics = opts.diagnostics === true || query.has('diag');
+  var clockMode = query.get('clock') || opts.clock || 'off';
+  var countdown = opts.countdown === true || query.has('countdown');
   var errors = [];
   window.addEventListener('error', function (e) { errors.push(String(e.message || e) + (e.lineno ? ' @' + e.lineno : '')); });
 
@@ -139,7 +141,7 @@
     spareY = Math.max(0, H * scale - vh);
     return true;
   }
-  window.addEventListener('resize', function () { sizedW = 0; layout(); });
+  window.addEventListener('resize', function () { sizedW = 0; hudKey = ''; layout(); });
   layout();
   var sizeCheck = 0;
   function place(t) {
@@ -406,6 +408,104 @@
     }
   }
 
+  // ---- Clock and countdown, in pixel lettering -----------------------------------------------
+  // A 5 by 7 dot font, like the lettering in 16-bit games. Each dot is one pixel of the art.
+  var GLYPHS = {
+    '0': '01110 10001 10011 10101 11001 10001 01110', '1': '00100 01100 00100 00100 00100 00100 01110',
+    '2': '01110 10001 00001 00010 00100 01000 11111', '3': '11111 00010 00100 00010 00001 10001 01110',
+    '4': '00010 00110 01010 10010 11111 00010 00010', '5': '11111 10000 11110 00001 00001 10001 01110',
+    '6': '00110 01000 10000 11110 10001 10001 01110', '7': '11111 00001 00010 00100 01000 01000 01000',
+    '8': '01110 10001 10001 01110 10001 10001 01110', '9': '01110 10001 10001 01111 00001 00010 01100',
+    'A': '01110 10001 10001 11111 10001 10001 10001', 'B': '11110 10001 10001 11110 10001 10001 11110',
+    'C': '01110 10001 10000 10000 10000 10001 01110', 'D': '11100 10010 10001 10001 10001 10010 11100',
+    'E': '11111 10000 10000 11110 10000 10000 11111', 'F': '11111 10000 10000 11110 10000 10000 10000',
+    'G': '01110 10001 10000 10111 10001 10001 01111', 'H': '10001 10001 10001 11111 10001 10001 10001',
+    'I': '01110 00100 00100 00100 00100 00100 01110', 'J': '00111 00010 00010 00010 00010 10010 01100',
+    'K': '10001 10010 10100 11000 10100 10010 10001', 'L': '10000 10000 10000 10000 10000 10000 11111',
+    'M': '10001 11011 10101 10101 10001 10001 10001', 'N': '10001 10001 11001 10101 10011 10001 10001',
+    'O': '01110 10001 10001 10001 10001 10001 01110', 'P': '11110 10001 10001 11110 10000 10000 10000',
+    'Q': '01110 10001 10001 10001 10101 10010 01101', 'R': '11110 10001 10001 11110 10100 10010 10001',
+    'S': '01111 10000 10000 01110 00001 00001 11110', 'T': '11111 00100 00100 00100 00100 00100 00100',
+    'U': '10001 10001 10001 10001 10001 10001 01110', 'V': '10001 10001 10001 10001 10001 01010 00100',
+    'W': '10001 10001 10001 10101 10101 10101 01010', 'X': '10001 10001 01010 00100 01010 10001 10001',
+    'Y': '10001 10001 10001 01010 00100 00100 00100', 'Z': '11111 00001 00010 00100 01000 10000 11111',
+    ':': '0 1 1 0 1 1 0', '!': '1 1 1 1 1 0 1', ' ': '000 000 000 000 000 000 000'
+  };
+  var glyphs = {};
+  Object.keys(GLYPHS).forEach(function (k) { glyphs[k] = GLYPHS[k].split(' '); });
+  function textWidth(text) {
+    var w = 0;
+    for (var i = 0; i < text.length; i++) w += (glyphs[text[i]] || glyphs[' '])[0].length + (i ? 1 : 0);
+    return w;
+  }
+  // Draws text with each font dot s units square: a drop shadow and a dark outline, then a
+  // two-tone fill, lighter on top.
+  function drawText(g, text, x, y, s, top, bottom) {
+    var dots = [], cx = x;
+    for (var i = 0; i < text.length; i++) {
+      var rows = glyphs[text[i]] || glyphs[' '];
+      for (var r = 0; r < 7; r++) for (var c = 0; c < rows[r].length; c++) if (rows[r][c] === '1') dots.push([cx + c * s, y + r * s, r]);
+      cx += (rows[0].length + 1) * s;
+    }
+    var o = Math.max(1, Math.round(s / 2));
+    g.fillStyle = 'rgba(10,14,40,0.55)';
+    dots.forEach(function (d) { g.fillRect(d[0] + o, d[1] + o * 2, s + o, s + o); });
+    g.fillStyle = 'rgb(14,18,48)';
+    dots.forEach(function (d) { g.fillRect(d[0] - o, d[1] - o, s + 2 * o, s + 2 * o); });
+    dots.forEach(function (d) { g.fillStyle = d[2] < 3 ? top : bottom; g.fillRect(d[0], d[1], s, s); });
+  }
+  var hud = document.getElementById('hud'), hctx = hud.getContext('2d');
+  var hudKey = '';
+  function two(n) { return (n < 10 ? '0' : '') + n; }
+  function clockText(now) {
+    var h = now.getHours(), m = two(now.getMinutes());
+    if (clockMode === '12') return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM');
+    return two(h) + ':' + m;
+  }
+  // The time left until Christmas Day starts, or a greeting on the day.
+  function countdownLines(now) {
+    if (now.getMonth() === 11 && now.getDate() === 25) return ['MERRY CHRISTMAS!'];
+    var year = now.getFullYear();
+    if (now.getMonth() === 11 && now.getDate() > 25) year++;
+    var left = Math.max(0, Math.floor((new Date(year, 11, 25) - now) / 1000));
+    var days = Math.floor(left / 86400), rest = left % 86400;
+    var time = two(Math.floor(rest / 3600)) + ':' + two(Math.floor(rest % 3600 / 60)) + ':' + two(rest % 60);
+    return [(days ? days + (days === 1 ? ' DAY ' : ' DAYS ') : '') + time, 'UNTIL CHRISTMAS'];
+  }
+  function drawHud() {
+    var showClock = clockMode === '12' || clockMode === '24';
+    if ((!showClock && !countdown) || !sizedW) { hud.style.display = 'none'; return; }
+    var now = new Date();
+    var lines = [];
+    if (showClock) lines.push({ text: clockText(now), big: true, top: '#ffffff', bottom: '#bfe0ff' });
+    if (countdown) countdownLines(now).forEach(function (l) { lines.push({ text: l, top: '#fff3a6', bottom: '#ffbe3a' }); });
+    var key = sizedW + 'x' + sizedH + lines.map(function (l) { return l.text; }).join('|');
+    if (key === hudKey) return;
+    hudKey = key;
+    // One unit is one pixel of the art on screen, or smaller on a narrow screen so the longest
+    // line still fits.
+    var widest = Math.max.apply(null, lines.map(function (l) { return textWidth(l.text); }));
+    var unit = Math.max(1, Math.min(P * scale, sizedW / (widest + 8)));
+    var cols = Math.ceil(sizedW / unit), rows = Math.ceil(sizedH / unit);
+    if (hud.width !== cols || hud.height !== rows) {
+      hud.width = cols; hud.height = rows;
+      hud.style.width = cols * unit + 'px'; hud.style.height = rows * unit + 'px';
+    }
+    hctx.clearRect(0, 0, cols, rows);
+    // Centred near the top, in the sky. The clock is two or three times the size, less on a
+    // narrow screen.
+    var y = 3;
+    lines.forEach(function (l) {
+      var w = textWidth(l.text), s = 1;
+      if (l.big) s = Math.max(1, Math.min(3, Math.floor((cols * 0.8) / w)));
+      while (s > 1 && w * s > cols - 4) s--;
+      var x = Math.round((cols - w * s) / 2);
+      drawText(hctx, l.text, x, y, s, l.top, l.bottom);
+      y += 7 * s + (l.big ? 4 : 3);
+    });
+    hud.style.display = 'block';
+  }
+
   // ---- Diagnostics -------------------------------------------------------------------------
   var frames = 0, diagBox = document.getElementById('diag'), diagAt = performance.now();
   function showDiagnostics(t, m, d) {
@@ -463,6 +563,7 @@
     drawSmoke(dt, d);
     drawSanta(dt, n);
     drawSnow(dt, t, d);
+    drawHud();
   }
   next();
 })();

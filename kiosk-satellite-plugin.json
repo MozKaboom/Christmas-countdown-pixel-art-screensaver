@@ -101,6 +101,27 @@
       "description": "How often Santa's sleigh crosses the sky at night. He also flies past soon after the screensaver starts."
     },
     {
+      "key": "clock",
+      "type": "select",
+      "title": "Clock",
+      "default": "Off",
+      "options": [
+        "Off",
+        "24 hour",
+        "12 hour"
+      ],
+      "group": "Clock and countdown",
+      "description": "Show the time at the top of the screen in pixel art lettering."
+    },
+    {
+      "key": "countdown",
+      "type": "boolean",
+      "title": "Countdown to Christmas",
+      "default": false,
+      "group": "Clock and countdown",
+      "description": "Show the days, hours, minutes and seconds until Christmas Day at the top of the screen. On Christmas Day it says Merry Christmas."
+    },
+    {
       "key": "diagnostics",
       "type": "boolean",
       "title": "Show diagnostics",

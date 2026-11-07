@@ -27,6 +27,8 @@ The village fills the screen's height with no borders, in landscape and portrait
 | Sunset | When it gets dark. The sunset glow starts about 50 minutes before. Default 16:00. |
 | Snow | None, Light, Steady or Blizzard. A blizzard is thick, fast and blows sideways. |
 | Santa flies past | How often Santa's sleigh crosses the sky at night: never, or every 1, 2, 5, 10 or 30 minutes. He also flies past soon after the screensaver starts. Default every 2 minutes. |
+| Clock | Off, 24 hour or 12 hour. Shows the time at the top of the screen in pixel lettering, like a 16-bit game. |
+| Countdown to Christmas | Shows the days, hours, minutes and seconds until Christmas Day under it. On Christmas Day it says Merry Christmas! |
 | Show diagnostics | Shows the screen size, frame rate, whether the pictures loaded and any errors in the corner, for tracking down a problem. |
 
 ## Data and privacy

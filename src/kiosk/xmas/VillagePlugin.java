@@ -23,6 +23,8 @@ public final class VillagePlugin implements KioskPlugin {
     static final List<String> SANTA = Arrays.asList("Never", "Every minute", "Every 2 minutes", "Every 5 minutes", "Every 10 minutes", "Every 30 minutes");
     /** Seconds between Santa's flights, for each choice. 0 is never. */
     static final int[] SANTA_SECONDS = {0, 60, 120, 300, 600, 1800};
+    static final List<String> CLOCKS = Arrays.asList("Off", "24 hour", "12 hour");
+    static final List<String> CLOCK_MODES = Arrays.asList("off", "24", "12");
 
     private PluginHost host;
     private Map<String, Object> published;
@@ -80,6 +82,9 @@ public final class VillagePlugin implements KioskPlugin {
         options.put("snow", snow < 0 ? 2 : snow);
         int santa = SANTA.indexOf(settings.get("santaEvery"));
         options.put("santaEvery", SANTA_SECONDS[santa < 0 ? 2 : santa]);
+        int clock = CLOCKS.indexOf(settings.get("clock"));
+        options.put("clock", CLOCK_MODES.get(clock < 0 ? 0 : clock));
+        options.put("countdown", Boolean.TRUE.equals(settings.get("countdown")));
         options.put("diagnostics", Boolean.TRUE.equals(settings.get("diagnostics")));
         return options;
     }
