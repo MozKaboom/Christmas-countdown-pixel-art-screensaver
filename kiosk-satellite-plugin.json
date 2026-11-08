@@ -7,7 +7,7 @@
   "minAndroidSdk": 24,
   "minAppVersion": "2026.10.45",
   "entryClass": "kiosk.xmas.VillagePlugin",
-  "description": "An animated pixel art screensaver of a snowy Christmas village that follows the time of day: daylight and drifting clouds by day, a glowing sunset, then moonlight, twinkling stars and Santa's sleigh at night. Snow falls, the tree lights twinkle, the chimneys smoke and the river shimmers. Select Christmas Village under Screensaver > Screensaver mode.",
+  "description": "An animated pixel art screensaver of a snowy Christmas village that follows the time of day: daylight and drifting clouds by day, a glowing sunset, then moonlight, twinkling stars and Santa's sleigh at night. Snow falls, the tree lights twinkle, the chimneys smoke and the river shimmers. Settings for sunrise and sunset times, snow from none to a blizzard, how often Santa flies past, how fast the picture scrolls, and an optional clock and Christmas countdown in pixel lettering. Select Christmas Village under Screensaver > Screensaver mode.",
   "author": "MozKaboom",
   "license": "Apache-2.0",
   "capabilities": [
@@ -99,6 +99,20 @@
       ],
       "group": "Scene",
       "description": "How often Santa's sleigh crosses the sky at night. He also flies past soon after the screensaver starts."
+    },
+    {
+      "key": "scroll",
+      "type": "select",
+      "title": "Scroll speed",
+      "default": "3",
+      "options": [
+        "0 (no scroll)",
+        "1",
+        "2",
+        "3"
+      ],
+      "group": "Scene",
+      "description": "How fast the picture drifts from side to side. 0 keeps it still, centred on the village. 3 is the fastest."
     },
     {
       "key": "clock",

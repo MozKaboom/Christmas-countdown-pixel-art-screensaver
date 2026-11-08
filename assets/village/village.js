@@ -19,6 +19,8 @@
   var snowLevel = Math.max(0, Math.min(3, Math.round(num(opts.snow, 2))));
   // Seconds between Santa's flights. 0 is never.
   var santaEvery = Math.max(0, num(opts.santaEvery, 120));
+  // Side to side drift, 0 (still, centred) to 3 (fastest).
+  var scrollSpeed = Math.max(0, Math.min(3, Math.round(num(query.has('scroll') ? query.get('scroll') : opts.scroll, 3))));
   var fixedTime = /^(\d\d?):(\d\d)$/.exec(query.get('t') || '');
   var diagnostics = opts.diagnostics === true || query.has('diag');
   var clockMode = query.get('clock') || opts.clock || 'off';
@@ -143,13 +145,19 @@
   }
   window.addEventListener('resize', function () { sizedW = 0; hudKey = ''; layout(); });
   layout();
-  var sizeCheck = 0;
+  var sizeCheck = 0, panStart = 0;
   function place(t) {
     if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
     if (!sizedW) return;
-    // A steady, slow drift, about 26 screen pixels a second, starting on the village.
-    var period = Math.max(70, 2 * spareX / 26);
-    var x = spareX > 1 ? -spareX * (0.5 + 0.5 * Math.sin(t / 1000 * 2 * Math.PI / period)) : 0;
+    // A steady drift starting on the village, at its fastest about 26 screen pixels a second at
+    // speed 3 and a third of that for each step down. At 0 the picture stays centred.
+    var x = -spareX * 0.5;
+    if (scrollSpeed > 0 && spareX > 1) {
+      var speed = 26 * scrollSpeed / 3;
+      var period = Math.max(70 * 3 / scrollSpeed, 2 * spareX / speed);
+      if (!panStart) panStart = t;
+      x = -spareX * (0.5 + 0.5 * Math.sin((t - panStart) / 1000 * 2 * Math.PI / period));
+    }
     // A screen even wider than the picture loses a little sky and the rest from the foreground.
     var y = -spareY * 0.2;
     stage.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale + ')';

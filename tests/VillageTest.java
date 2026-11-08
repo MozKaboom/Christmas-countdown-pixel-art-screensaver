@@ -39,6 +39,10 @@ public final class VillageTest {
         assert "auto".equals(o.get("timeOfDay")) && o.get("sunrise").equals(480) && o.get("sunset").equals(960) : o;
         assert o.get("snow").equals(2) && o.get("santaEvery").equals(120) : o;
         assert Boolean.FALSE.equals(o.get("diagnostics")) : o;
+        assert o.get("scroll").equals(3) : o;
+        assert VillagePlugin.options(map("scroll", "0 (no scroll)")).get("scroll").equals(0);
+        assert VillagePlugin.options(map("scroll", "2")).get("scroll").equals(2);
+        assert VillagePlugin.options(map("scroll", "fast")).get("scroll").equals(3);
         assert "off".equals(o.get("clock")) && Boolean.FALSE.equals(o.get("countdown")) : o;
         o = VillagePlugin.options(map("clock", "12 hour", "countdown", true));
         assert "12".equals(o.get("clock")) && Boolean.TRUE.equals(o.get("countdown")) : o;

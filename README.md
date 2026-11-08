@@ -30,20 +30,42 @@ Or search for `Christmas Village` in **Settings > Plugin Manager > Browse plugin
 2. Open **Screensaver > Screensaver mode** and pick **Christmas Village (Christmas Village)**. You can also pick it in a screensaver schedule entry.
 3. Start the screensaver from the kiosk menu, or wait for the idle timeout.
 
-The village fills the screen's height with no borders, in landscape and portrait. The picture is much wider than the screen, with pine woods and snowy fields either side of the village, so it scrolls slowly from side to side to show it all.
+The village fills the screen's height with no borders, in landscape and portrait. The picture is much wider than the screen, with pine woods and snowy fields either side of the village, so it scrolls slowly from side to side to show it all. The **Scroll speed** setting slows it down or keeps it still.
 
 ## Settings
 
-| Setting | What it does |
-| --- | --- |
-| Time of day | **Follow the clock** uses the kiosk's own time. **Always day** and **Always night** hold one look. **A day every 3 minutes** runs through a whole day, sunrise to night, to show it all off. |
-| Sunrise | When it gets light. The sky starts to brighten about 50 minutes before. Default 08:00. |
-| Sunset | When it gets dark. The sunset glow starts about 50 minutes before. Default 16:00. |
-| Snow | None, Light, Steady or Blizzard. A blizzard is thick, fast and blows sideways. |
-| Santa flies past | How often Santa's sleigh crosses the sky at night: never, or every 1, 2, 5, 10 or 30 minutes. He also flies past soon after the screensaver starts. Default every 2 minutes. |
-| Clock | Off, 24 hour or 12 hour. Shows the time at the top of the screen in pixel lettering, like a 16-bit game. |
-| Countdown to Christmas | Shows the days, hours, minutes and seconds until Christmas Day under it. On Christmas Day it says Merry Christmas! |
-| Show diagnostics | Shows the screen size, frame rate, whether the pictures loaded and any errors in the corner, for tracking down a problem. |
+Open **Settings > Plugin Manager**, choose **Christmas Village** and change any of these. The screensaver picks up a change the next time it starts.
+
+### Day and night
+
+| Setting | Choices | Default | What it does |
+| --- | --- | --- | --- |
+| Time of day | Follow the clock, Always day, Always night, A day every 3 minutes | Follow the clock | **Follow the clock** uses the kiosk's own time, so the village is light by day and dark at night. **Always day** and **Always night** keep one look all the time. **A day every 3 minutes** runs through a whole day, from sunrise to night, to show everything off. |
+| Sunrise | 06:00 to 10:00, every half hour | 08:00 | When it gets light. The sky starts to brighten about 50 minutes before, with a pink and orange sunrise glow. |
+| Sunset | 14:30 to 20:00, every half hour | 16:00 | When it gets dark. The sunset glow starts about 50 minutes before, then the moon and stars come out. |
+
+### Scene
+
+| Setting | Choices | Default | What it does |
+| --- | --- | --- | --- |
+| Snow | None, Light, Steady, Blizzard | Steady | How much snow falls. A blizzard is thick, fast and blows sideways. |
+| Santa flies past | Never, every 1, 2, 5, 10 or 30 minutes | Every 2 minutes | How often Santa's sleigh crosses the night sky. He also flies past soon after the screensaver starts. He only flies at night. |
+| Scroll speed | 0 (no scroll), 1, 2, 3 | 3 | How fast the picture drifts from side to side. **0** keeps it still, centred on the village. **1** and **2** are a third and two thirds of the full speed. **3** is the fastest. |
+
+### Clock and countdown
+
+| Setting | Choices | Default | What it does |
+| --- | --- | --- | --- |
+| Clock | Off, 24 hour, 12 hour | Off | Shows the time at the top of the screen in pixel lettering, like a 16-bit game. |
+| Countdown to Christmas | On or off | Off | Shows the days, hours, minutes and seconds until Christmas Day, under the clock if it's on. On Christmas Day it says MERRY CHRISTMAS! |
+
+The clock and countdown stay put while the picture scrolls behind them.
+
+### Troubleshooting
+
+| Setting | Choices | Default | What it does |
+| --- | --- | --- | --- |
+| Show diagnostics | On or off | Off | Shows the screen size, frame rate, whether the pictures loaded and any errors in the corner of the screen, for tracking down a problem. |
 
 ## Data and privacy
 
