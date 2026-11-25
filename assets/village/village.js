@@ -147,7 +147,7 @@
   }
   window.addEventListener('resize', function () { sizedW = 0; hudKey = ''; layout(); });
   layout();
-  var sizeCheck = 0, panStart = 0;
+  var sizeCheck = 0, panStart = 0, placed = '';
   function place(t) {
     if (!sizedW || (sizeCheck += 1) >= 30) { sizeCheck = 0; layout(); }
     if (!sizedW) return;
@@ -162,10 +162,15 @@
     }
     // A screen even wider than the picture loses a little sky and the rest from the foreground.
     var y = -spareY * 0.2;
-    // On whole screen pixels, so the picture's crisp pixels don't shimmer as it moves.
-    var dpr = window.devicePixelRatio || 1;
-    x = Math.round(x * dpr) / dpr; y = Math.round(y * dpr) / dpr;
-    stage.style.transform = 'translate(' + x.toFixed(3) + 'px,' + y.toFixed(3) + 'px) scale(' + scale + ')';
+    // In whole picture pixels. The picture is scaled by an odd amount with its pixels kept crisp,
+    // so some of its pixels show a screen pixel wider than others; moving it by whole screen
+    // pixels shifts which ones, and the picture crawls as it scrolls. Moving it a whole picture
+    // pixel at a time keeps the pattern and just carries it along.
+    x = Math.round(x / scale) * scale; y = Math.round(y / scale) * scale;
+    var tf = 'translate(' + x.toFixed(3) + 'px,' + y.toFixed(3) + 'px) scale(' + scale + ')';
+    // Only when it moves: most frames it stays put, and setting it anyway can make some
+    // WebViews redraw the whole scene.
+    if (tf !== placed) { placed = tf; stage.style.transform = tf; }
   }
 
   // ---- Snow ---------------------------------------------------------------------------------
@@ -566,17 +571,18 @@
   }
 
   // ---- The loop ------------------------------------------------------------------------------
-  var last = performance.now(), pending = false, lastCall = performance.now();
+  var last = performance.now(), pending = false, lastFrame = performance.now(), clock = 0;
   function next() {
     if (pending) return;
     pending = true;
-    requestAnimationFrame(function (t) { pending = false; frame(t); });
+    requestAnimationFrame(function () { pending = false; lastFrame = performance.now(); frame(); });
   }
   // Some WebViews hold back animation frames, for a while or for good. Then a timer keeps the
-  // scene moving instead.
-  setInterval(function () { if (performance.now() - lastCall > 400) frame(performance.now()); }, 50);
-  function frame(t) {
-    lastCall = performance.now();
+  // whole scene moving instead, about 30 times a second, until the frames come back.
+  setInterval(function () { if (performance.now() - lastFrame > 250) frame(); }, 33);
+  function frame() {
+    // One clock for both ways in, never stepping back, so the scroll never jumps to and fro.
+    var t = clock = Math.max(clock, performance.now());
     next();
     // The scroll moves on every frame the screen shows, for a smooth glide; the rest of the
     // scene is drawn about 30 times a second.
