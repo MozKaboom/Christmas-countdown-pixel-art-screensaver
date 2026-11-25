@@ -88,6 +88,7 @@ public final class VillagePlugin implements KioskPlugin {
         int clock = CLOCKS.indexOf(settings.get("clock"));
         options.put("clock", CLOCK_MODES.get(clock < 0 ? 0 : clock));
         options.put("countdown", Boolean.TRUE.equals(settings.get("countdown")));
+        options.put("countdownSeconds", !Boolean.FALSE.equals(settings.get("countdownSeconds")));
         options.put("diagnostics", Boolean.TRUE.equals(settings.get("diagnostics")));
         return options;
     }

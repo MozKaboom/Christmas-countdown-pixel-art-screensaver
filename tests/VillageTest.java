@@ -46,6 +46,8 @@ public final class VillageTest {
         assert "off".equals(o.get("clock")) && Boolean.FALSE.equals(o.get("countdown")) : o;
         o = VillagePlugin.options(map("clock", "12 hour", "countdown", true));
         assert "12".equals(o.get("clock")) && Boolean.TRUE.equals(o.get("countdown")) : o;
+        assert Boolean.TRUE.equals(VillagePlugin.options(map()).get("countdownSeconds"));
+        assert Boolean.FALSE.equals(VillagePlugin.options(map("countdownSeconds", false)).get("countdownSeconds"));
         assert "24".equals(VillagePlugin.options(map("clock", "24 hour")).get("clock"));
         assert Boolean.TRUE.equals(VillagePlugin.options(map("diagnostics", true)).get("diagnostics"));
 

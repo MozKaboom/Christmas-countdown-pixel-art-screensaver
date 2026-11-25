@@ -136,6 +136,14 @@
       "description": "Show the days, hours, minutes and seconds until Christmas Day at the top of the screen. On Christmas Day it says Merry Christmas."
     },
     {
+      "key": "countdownSeconds",
+      "type": "boolean",
+      "title": "Show seconds in the countdown",
+      "default": true,
+      "group": "Clock and countdown",
+      "description": "Count down the seconds too, as in 30 DAYS & 09:14:05 HOURS. Off shows 30 DAYS & 09:14 HOURS."
+    },
+    {
       "key": "diagnostics",
       "type": "boolean",
       "title": "Show diagnostics",

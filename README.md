@@ -57,7 +57,8 @@ Open **Settings > Plugin Manager**, choose **Christmas Village** and change any 
 | Setting | Choices | Default | What it does |
 | --- | --- | --- | --- |
 | Clock | Off, 24 hour, 12 hour | Off | Shows the time at the top of the screen in pixel lettering, like a 16-bit game. |
-| Countdown to Christmas | On or off | Off | Shows the days, hours, minutes and seconds until Christmas Day, under the clock if it's on. On Christmas Day it says MERRY CHRISTMAS! |
+| Countdown to Christmas | On or off | Off | Shows the days, hours, minutes and seconds until Christmas Day, under the clock if it's on. Under it, UNTIL CHRISTMAS DAY! a little larger. On Christmas Day it says MERRY CHRISTMAS! |
+| Show seconds in the countdown | On or off | On | Counts down the seconds too, as in 30 DAYS & 09:14:05 HOURS. Off shows 30 DAYS & 09:14 HOURS. |
 
 The clock and countdown stay put while the picture scrolls behind them.
 

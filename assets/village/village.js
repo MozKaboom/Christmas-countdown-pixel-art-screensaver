@@ -25,6 +25,8 @@
   var diagnostics = opts.diagnostics === true || query.has('diag');
   var clockMode = query.get('clock') || opts.clock || 'off';
   var countdown = opts.countdown === true || query.has('countdown');
+  // The countdown's seconds, on by default; off shows days, hours and minutes.
+  var countdownSeconds = !(opts.countdownSeconds === false || query.get('seconds') === 'off');
   var errors = [];
   window.addEventListener('error', function (e) { errors.push(String(e.message || e) + (e.lineno ? ' @' + e.lineno : '')); });
 
@@ -160,7 +162,10 @@
     }
     // A screen even wider than the picture loses a little sky and the rest from the foreground.
     var y = -spareY * 0.2;
-    stage.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale + ')';
+    // On whole screen pixels, so the picture's crisp pixels don't shimmer as it moves.
+    var dpr = window.devicePixelRatio || 1;
+    x = Math.round(x * dpr) / dpr; y = Math.round(y * dpr) / dpr;
+    stage.style.transform = 'translate(' + x.toFixed(3) + 'px,' + y.toFixed(3) + 'px) scale(' + scale + ')';
   }
 
   // ---- Snow ---------------------------------------------------------------------------------
@@ -378,17 +383,35 @@
 
   // ---- Clouds by day -------------------------------------------------------------------------
   function makeCloud() {
-    var w = Math.round(rand(14, 28)), h = Math.round(rand(5, 8));
+    var w = Math.round(rand(14, 28)), h = Math.round(rand(7, 10));
     var c = document.createElement('canvas');
     c.width = w; c.height = h;
     var g = c.getContext('2d');
-    var blobs = [];
-    for (var i = 0; i < 4; i++) blobs.push([rand(h * 0.5, w - h * 0.5), rand(h * 0.45, h * 0.7), rand(h * 0.35, h * 0.6)]);
-    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
-      var inside = blobs.some(function (b) { var dx = (x + 0.5 - b[0]) / 1.4, dy = y + 0.5 - b[1]; return dx * dx + dy * dy < b[2] * b[2]; });
-      if (!inside && !(y >= h - 2 && x > 1 && x < w - 2)) continue;
-      g.fillStyle = y >= h - 2 ? 'rgb(214,226,242)' : y >= h - 3 ? 'rgb(236,242,250)' : '#fff';
-      g.fillRect(x, y, 1, 1);
+    // A row of round puffs, so the cloud is lumpy underneath as well as on top.
+    var blobs = [], n = Math.max(4, Math.round(w / 4));
+    for (var i = 0; i < n; i++) {
+      // Close enough together that the puffs overlap, with no gaps between them; smaller
+      // towards the ends, and each hanging to its own depth, so the underside rolls too.
+      var t = (i + 0.5) / n;
+      var r = Math.min((h - 0.6) / 2, h * (0.26 + 0.24 * Math.sin(Math.PI * t)) * rand(0.9, 1.1));
+      // Whole puffs, inside the cloud's canvas, so the top is rounded as well.
+      // and inside it side to side too, so the ends are round, not cut straight.
+      var cx = Math.max(1.4 * r + 0.3, Math.min(w - 1.4 * r - 0.3, t * w + rand(-0.7, 0.7)));
+      blobs.push([cx, h - r - 0.2 - rand(0, Math.max(0, h - 2 * r - 0.6)), r]);
+    }
+    function inside(x, y) {
+      return blobs.some(function (b) { var dx = (x + 0.5 - b[0]) / 1.4, dy = y + 0.5 - b[1]; return dx * dx + dy * dy < b[2] * b[2]; });
+    }
+    for (var x = 0; x < w; x++) {
+      // Each column shaded from its own underside up: blue-grey, then a paler grey, then white.
+      var bottom = -1;
+      for (var y = h - 1; y >= 0; y--) if (inside(x, y)) { bottom = y; break; }
+      for (var y2 = 0; y2 <= bottom; y2++) {
+        if (!inside(x, y2)) continue;
+        var up = bottom - y2;
+        g.fillStyle = up === 0 ? 'rgb(214,226,242)' : up === 1 ? 'rgb(236,242,250)' : '#fff';
+        g.fillRect(x, y2, 1, 1);
+      }
     }
     return c;
   }
@@ -437,6 +460,7 @@
     'U': '10001 10001 10001 10001 10001 10001 01110', 'V': '10001 10001 10001 10001 10001 01010 00100',
     'W': '10001 10001 10001 10101 10101 10101 01010', 'X': '10001 10001 01010 00100 01010 10001 10001',
     'Y': '10001 10001 10001 01010 00100 00100 00100', 'Z': '11111 00001 00010 00100 01000 10000 11111',
+    '&': '01100 10010 10100 01000 10101 10010 01101',
     ':': '0 1 1 0 1 1 0', '!': '1 1 1 1 1 0 1', ' ': '000 000 000 000 000 000 000'
   };
   var glyphs = {};
@@ -455,7 +479,8 @@
       for (var r = 0; r < 7; r++) for (var c = 0; c < rows[r].length; c++) if (rows[r][c] === '1') dots.push([cx + c * s, y + r * s, r]);
       cx += (rows[0].length + 1) * s;
     }
-    var o = Math.max(1, Math.round(s / 2));
+    // The outline and shadow stay a whole number of art pixels (HUD_SUB units each).
+    var o = HUD_SUB * Math.max(1, Math.round(s / HUD_SUB / 2));
     g.fillStyle = 'rgba(10,14,40,0.55)';
     dots.forEach(function (d) { g.fillRect(d[0] + o, d[1] + o * 2, s + o, s + o); });
     g.fillStyle = 'rgb(14,18,48)';
@@ -477,23 +502,28 @@
     if (now.getMonth() === 11 && now.getDate() > 25) year++;
     var left = Math.max(0, Math.floor((new Date(year, 11, 25) - now) / 1000));
     var days = Math.floor(left / 86400), rest = left % 86400;
-    var time = two(Math.floor(rest / 3600)) + ':' + two(Math.floor(rest % 3600 / 60)) + ':' + two(rest % 60);
-    return [(days ? days + (days === 1 ? ' DAY ' : ' DAYS ') : '') + time, 'UNTIL CHRISTMAS'];
+    var time = two(Math.floor(rest / 3600)) + ':' + two(Math.floor(rest % 3600 / 60)) + (countdownSeconds ? ':' + two(rest % 60) : '') + ' HOURS';
+    return [(days ? days + (days === 1 ? ' DAY & ' : ' DAYS & ') : '') + time, 'UNTIL CHRISTMAS DAY!'];
   }
+  // The lettering is drawn on a grid of fifths of an art pixel, so a line can be a fifth bigger
+  // as well as whole steps: HUD_SUB units make one art pixel.
+  var HUD_SUB = 5;
   function drawHud() {
     var showClock = clockMode === '12' || clockMode === '24';
     if ((!showClock && !countdown) || !sizedW) { hud.style.display = 'none'; return; }
     var now = new Date();
     var lines = [];
     if (showClock) lines.push({ text: clockText(now), big: true, top: '#ffffff', bottom: '#bfe0ff' });
-    if (countdown) countdownLines(now).forEach(function (l) { lines.push({ text: l, top: '#fff3a6', bottom: '#ffbe3a' }); });
+    // The countdown, and under it "until Christmas Day!" a fifth bigger.
+    if (countdown) countdownLines(now).forEach(function (l, i) { lines.push({ text: l, top: '#fff3a6', bottom: '#ffbe3a', size: i === 1 ? 1.2 : 1 }); });
     var key = sizedW + 'x' + sizedH + lines.map(function (l) { return l.text; }).join('|');
     if (key === hudKey) return;
     hudKey = key;
-    // One unit is one pixel of the art on screen, or smaller on a narrow screen so the longest
-    // line still fits.
-    var widest = Math.max.apply(null, lines.map(function (l) { return textWidth(l.text); }));
-    var unit = Math.max(1, Math.min(P * scale, sizedW / (widest + 8)));
+    // One art pixel is one pixel of the art on screen, or smaller on a narrow screen so the
+    // longest line still fits.
+    var widest = Math.max.apply(null, lines.map(function (l) { return textWidth(l.text) * (l.size || 1); }));
+    var art = Math.max(1, Math.min(P * scale, sizedW / (widest + 8)));
+    var unit = art / HUD_SUB;
     var cols = Math.ceil(sizedW / unit), rows = Math.ceil(sizedH / unit);
     if (hud.width !== cols || hud.height !== rows) {
       hud.width = cols; hud.height = rows;
@@ -502,14 +532,14 @@
     hctx.clearRect(0, 0, cols, rows);
     // Centred near the top, in the sky. The clock is two or three times the size, less on a
     // narrow screen.
-    var y = sizedW > sizedH ? 6 : 3;  // a little more room above it in landscape
+    var y = (sizedW > sizedH ? 6 : 3) * HUD_SUB;  // a little more room above it in landscape
     lines.forEach(function (l) {
-      var w = textWidth(l.text), s = 1;
-      if (l.big) s = Math.max(1, Math.min(3, Math.floor((cols * 0.8) / w)));
-      while (s > 1 && w * s > cols - 4) s--;
+      var w = textWidth(l.text), s = Math.round((l.size || 1) * HUD_SUB);
+      if (l.big) s = HUD_SUB * Math.max(1, Math.min(3, Math.floor((cols / HUD_SUB * 0.8) / w)));
+      while (s > HUD_SUB && w * s > cols - 4 * HUD_SUB) s--;
       var x = Math.round((cols - w * s) / 2);
       drawText(hctx, l.text, x, y, s, l.top, l.bottom);
-      y += 7 * s + (l.big ? 4 : 3);
+      y += 7 * s + (l.big ? 4 : 3) * HUD_SUB;
     });
     hud.style.display = 'block';
   }
@@ -548,6 +578,9 @@
   function frame(t) {
     lastCall = performance.now();
     next();
+    // The scroll moves on every frame the screen shows, for a smooth glide; the rest of the
+    // scene is drawn about 30 times a second.
+    try { place(t); } catch (e) { /* never stop the loop */ }
     var dt = (t - last) / 1000;
     if (dt < 1 / 32) return; // about 30 frames a second is plenty
     last = t;
@@ -561,7 +594,6 @@
     if (dt > 0.25) dt = 0.25;
     var m = minutesNow(), d = daylight(m), n = 1 - d;
     drawBase(d, glow(m));
-    place(t);
     drawClouds(dt, d);
     ctx.clearRect(0, 0, GW, GH);
     drawWindows(t, n);

@@ -10,7 +10,7 @@
   #view { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
   /* The scene is drawn at the picture's own size and scaled to fill the screen. The script sets
      the sizes from the picture's. */
-  #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
   #stage canvas, #stage img { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
   /* The clock and countdown: fixed on the screen while the scene scrolls behind. */
   #hud { position: fixed; left: 0; top: 0; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; display: none; }
